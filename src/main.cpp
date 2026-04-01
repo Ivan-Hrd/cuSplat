@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-#include "gaussian.h"
+#include "gaussian.hpp"
 
 int main()
 {

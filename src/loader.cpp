@@ -1,12 +1,14 @@
+// © 2026 Marwane KADOUCI and Ivan HUARD. All rights reserved. See LICENSE at project root for terms.
+
 #include <cassert>
 #include <cmath>
 #include <cstring>
 #include <fstream>
 #include <vector>
 
-#include "gaussian.h"
+#include "gaussian.hpp"
 
-
+#define NB_ATTRIBUTES 62
 
 std::vector<Gaussian> loadPLY(const std::string& filename) {
     /*
@@ -27,7 +29,7 @@ std::vector<Gaussian> loadPLY(const std::string& filename) {
     }
 
     size_t off = 0;
-    std::vector<char> allData(sizeof(float) * 62 * nbGauss);
+    std::vector<char> allData(sizeof(float) * NB_ATTRIBUTES * nbGauss);
     file.read(allData.data(),allData.size());
     if (!file) throw std::runtime_error("Error reading binary data");
     for (unsigned int i = 0; i < nbGauss; ++i) {
