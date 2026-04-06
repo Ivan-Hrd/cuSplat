@@ -19,6 +19,6 @@ struct TileRange {
     int end;
 };
 
-std::vector<TileRange> IdentifyTileRanges(std::vector<GaussianKey> gaussianKeys, Camera& camera);
+std::vector<TileRange> IdentifyTileRanges(const std::vector<GaussianKey>& gaussianKeys, Camera& camera);
 
 std::vector<GaussianKey> CreateTiles(std::vector<GaussianSplated>& gaussian_splateds, Camera& camera);

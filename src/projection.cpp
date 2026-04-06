@@ -50,7 +50,7 @@ void buildJ(float X, float Y, float Z, float fx, float fy, float J[2][3]) {
     J[1][0] = 0; J[1][1] = fy/Z; J[1][2] = -fy*Y/(Z*Z);
 }
 
-std::vector<GaussianSplated> screenspaceGaussians(std::vector<Gaussian>& gaussians, Camera& camera) {
+std::vector<GaussianSplated> screenspaceGaussians(const std::vector<Gaussian>& gaussians, Camera& camera) {
     std::vector<GaussianSplated> result;
     for (unsigned int i = 0; i < gaussians.size(); i++) {
         GaussianSplated gaussian;

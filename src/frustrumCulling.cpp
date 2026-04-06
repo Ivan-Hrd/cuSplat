@@ -29,7 +29,7 @@ bool isVisible(Gaussian g, Camera& cam, float radius) {
            v+radius > 0 && v-radius < cam.height;
 }
 
-std::vector<Gaussian> cullGaussian(std::vector<Gaussian>& gaussians, Camera camera) {
+std::vector<Gaussian> cullGaussian(const std::vector<Gaussian>& gaussians, Camera camera) {
     std::vector<Gaussian> result;
     for (unsigned int i = 0; i < gaussians.size(); i++) {
         Gaussian gaussian = gaussians[i];

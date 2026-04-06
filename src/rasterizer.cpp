@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <cmath>
+#include <algorithm>
 
 #include "camera.hpp"
 #include "utils.hpp"
@@ -19,9 +20,9 @@ float computeAlpha(const GaussianSplated& g, float px, float py) {
     return g.opacity*std::exp(-0.5f*power);
 }
 
-void rasterize(std::vector<Gaussian> gaussians, Camera &camera, float *image) {
-    gaussians = cullGaussian(gaussians, camera);
-    std::vector<GaussianSplated> gaussSplateds = screenspaceGaussians(gaussians, camera);
+void rasterize(const std::vector<Gaussian>& gaussians, Camera &camera, float *image) {
+    auto cullGaussians = cullGaussian(gaussians, camera);
+    std::vector<GaussianSplated> gaussSplateds = screenspaceGaussians(cullGaussians, camera);
     std::vector<GaussianKey> gaussianKeys = CreateTiles(gaussSplateds, camera);
     std::vector<TileRange> tileRanges = IdentifyTileRanges(gaussianKeys, camera);
     int nbTiles = tileRanges.size();

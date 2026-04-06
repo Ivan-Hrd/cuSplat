@@ -11,7 +11,7 @@
 #include "camera.hpp"
 #include "gaussian.hpp"
 
-std::vector<TileRange> IdentifyTileRanges(std::vector<GaussianKey> gaussianKeys, Camera& camera) {
+std::vector<TileRange> IdentifyTileRanges(const std::vector<GaussianKey>& gaussianKeys, Camera& camera) {
     int nTilesX = (camera.width+TILE_SIZE-1) / TILE_SIZE;
     int nTilesY = (camera.height+TILE_SIZE-1) / TILE_SIZE;
     std::vector<TileRange> tileRanges(nTilesX*nTilesY, {-1, -1});
