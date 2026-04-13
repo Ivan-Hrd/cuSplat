@@ -84,6 +84,20 @@ std::vector<GaussianSplated> screenspaceGaussians(const std::vector<Gaussian>& g
             for (int j1 = 0; j1 < 2; j1++)
                 gaussian.cov[i1][j1] = A[i1][0]*T[j1][0]+A[i1][1]*T[j1][1]+A[i1][2]*T[j1][2];
 
+        float a = gaussian.cov[0][0];
+        float b1 = gaussian.cov[0][1];
+        float c = gaussian.cov[1][1];
+
+        float mid = 0.5f * (a + c);
+        float diff = 0.5f * (a - c);
+        float lambda_max = mid + std::sqrt(diff*diff + b1*b1); // plus grande valeur propre
+
+        gaussian.radius = std::ceil(3.0f * std::sqrt(lambda_max));
+        // ensure sigmaPrime is definite positive so that opacity determinant
+        // does not create artifacts
+        gaussian.cov[0][0] += 0.3f;
+        gaussian.cov[1][1] += 0.3f;
+
         float dx = camera.pos[0] - gaussians[i].x;
         float dy = camera.pos[1] - gaussians[i].y;
         float dz = camera.pos[2] - gaussians[i].z;
@@ -103,12 +117,14 @@ std::vector<GaussianSplated> screenspaceGaussians(const std::vector<Gaussian>& g
         gaussian.color[0] = r;
         gaussian.color[1] = g;
         gaussian.color[2] = b;
+
         // 1st order
         for (int c = 0; c < 3; c++) { // 3 channel
             gaussian.color[c] += SH_C1 * gaussians[i].f_rest[0*3+c] * dy +
                                  SH_C1 * gaussians[i].f_rest[1*3+c] * dz +
                                  SH_C1 * gaussians[i].f_rest[2*3+c] * dx;
         }
+        // 2nd order
         for (int c = 0; c < 3; c++) { // 3 channel
             gaussian.color[c] += SH_C2[0] * gaussians[i].f_rest[3*3+c] * dy*dx +
                                  SH_C2[1] * gaussians[i].f_rest[4*3+c] * dz*dy +
@@ -116,6 +132,7 @@ std::vector<GaussianSplated> screenspaceGaussians(const std::vector<Gaussian>& g
                                  SH_C2[3] * gaussians[i].f_rest[6*3+c] * dx*dz +
                                  SH_C2[4] * gaussians[i].f_rest[7*3+c] * (dx*dx - dy*dy);
         }
+        // 3rd order
         for (int c = 0; c < 3; c++) { // 3 channel
             gaussian.color[c] += SH_C3[0] * gaussians[i].f_rest[8*3+c] * dy*(3*dx*dx-dy*dy) +
                                  SH_C3[1] * gaussians[i].f_rest[9*3+c] * dz*dy*dx +
@@ -125,10 +142,11 @@ std::vector<GaussianSplated> screenspaceGaussians(const std::vector<Gaussian>& g
                                  SH_C3[5] * gaussians[i].f_rest[13*3+c] * dz*(dx*dx - dy*dy)+
                                  SH_C3[6] * gaussians[i].f_rest[14*3+c] * dx*(dx*dx - 3*dy*dy);
         }
+
         for (int c = 0; c < 3; c++) {
             gaussian.color[c] = std::max(0.0f, std::min(1.0f, gaussian.color[c] + 0.5f));
         }
-        gaussian.radius = std::ceil(3.0f * std::sqrt(std::max(gaussian.cov[0][0], gaussian.cov[1][1])));
+        //gaussian.radius = std::ceil(3.0f * std::sqrt(std::max(gaussian.cov[0][0], gaussian.cov[1][1])));
         result.push_back(gaussian);
     }
     return result;

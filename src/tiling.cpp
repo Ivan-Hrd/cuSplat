@@ -31,10 +31,10 @@ std::vector<GaussianKey> CreateTiles(std::vector<GaussianSplated>& gaussian_spla
     int nTilesX = (camera.width+TILE_SIZE-1) / TILE_SIZE;
     int nTilesY = (camera.height+TILE_SIZE-1) / TILE_SIZE;
     for (int i=0; i < gaussian_splateds.size(); i++) {
-        int tile_min_x = (int)std::floor(gaussian_splateds[i].u - gaussian_splateds[i].radius) / TILE_SIZE;
-        int tile_max_x = (int)std::ceil(gaussian_splateds[i].u + gaussian_splateds[i].radius) / TILE_SIZE;
-        int tile_min_y = (int)std::floor(gaussian_splateds[i].v - gaussian_splateds[i].radius) / TILE_SIZE;
-        int tile_max_y = (int)std::ceil(gaussian_splateds[i].v + gaussian_splateds[i].radius) / TILE_SIZE;
+        int tile_min_x = (int)std::floor((gaussian_splateds[i].u - gaussian_splateds[i].radius) / TILE_SIZE);
+        int tile_max_x = (int)std::ceil((gaussian_splateds[i].u + gaussian_splateds[i].radius) / TILE_SIZE) -1;
+        int tile_min_y = (int)std::floor((gaussian_splateds[i].v - gaussian_splateds[i].radius) / TILE_SIZE);
+        int tile_max_y = (int)std::ceil((gaussian_splateds[i].v + gaussian_splateds[i].radius) / TILE_SIZE) -1;
         tile_min_x = std::max(0, tile_min_x);
         tile_max_x = std::min(nTilesX-1, tile_max_x);
         tile_min_y = std::max(0, tile_min_y);
