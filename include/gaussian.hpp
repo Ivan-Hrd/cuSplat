@@ -13,4 +13,13 @@ struct Gaussian {
     float rx, ry, rz, rw;
 };
 
+struct GaussianSplated { // 2D
+    float u, v;
+    float color[3];
+    float opacity;
+    float cov[2][2]; // rotation & scale
+    float depth;
+    float radius;
+};
+
 std::vector<Gaussian> loadPLY(const std::string& filename);

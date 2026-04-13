@@ -77,13 +77,13 @@ std::vector<Gaussian> loadPLY(const std::string& filename) {
         off += sizeof(float);
 
         // get rotation (quaternions)
+        std::memcpy(&gaussian.rw, allData.data() + off, sizeof(float));
+        off += sizeof(float);
         std::memcpy(&gaussian.rx, allData.data() + off, sizeof(float));
         off += sizeof(float);
         std::memcpy(&gaussian.ry, allData.data() + off, sizeof(float));
         off += sizeof(float);
         std::memcpy(&gaussian.rz, allData.data() + off, sizeof(float));
-        off += sizeof(float);
-        std::memcpy(&gaussian.rw, allData.data() + off, sizeof(float));
         off += sizeof(float);
         // normalize quaternions
         float norm = std::sqrt(gaussian.rx*gaussian.rx + gaussian.ry*gaussian.ry
