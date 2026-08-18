@@ -1,5 +1,3 @@
-# © 2026 Marwane KADOUCI and Ivan HUARD. All rights reserved. See LICENSE at project root for terms.
-
 cmake_minimum_required(VERSION 3.21.2)
 
 project(rt-core-gaussian-splatting LANGUAGES CXX)
