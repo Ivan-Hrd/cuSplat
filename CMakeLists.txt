@@ -31,7 +31,9 @@ set(CMAKE_CUDA_ARCHITECTURES "native")
 # Set fpic for Google Benchmark
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-add_executable(main
+
+# SNAPSHOT
+add_executable(snapshot
         include/gaussian.hpp
         include/camera.hpp
         src/rasterizer.cu
@@ -39,15 +41,37 @@ add_executable(main
         src/projection.cu
         include/tiling.hpp
         src/tiling.cu)
-target_include_directories(main PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_compile_options(main PRIVATE
+target_include_directories(snapshot PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_options(snapshot PRIVATE
         $<$<COMPILE_LANGUAGE:CUDA>:-U__cpp_lib_assume_aligned>
 )
-target_link_libraries(main
+target_link_libraries(snapshot
         PRIVATE
         rmm::rmm
         raft::raft
         benchmark::benchmark
 )
+# --
+
+# bench
+add_executable(bench
+        include/gaussian.hpp
+        include/camera.hpp
+        src/rasterizer.cu
+        include/utils.hpp
+        src/projection.cu
+        include/tiling.hpp
+        src/tiling.cu)
+target_include_directories(bench PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_options(bench PRIVATE
+        $<$<COMPILE_LANGUAGE:CUDA>:-U__cpp_lib_assume_aligned>
+)
+target_link_libraries(bench
+        PRIVATE
+        rmm::rmm
+        raft::raft
+        benchmark::benchmark
+)
+# --
 
 add_subdirectory(src)

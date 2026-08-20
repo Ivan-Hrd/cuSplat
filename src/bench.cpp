@@ -1,3 +1,4 @@
+#include <benchmark/benchmark.h>
 #include <fstream>
 #include <iostream>
 
@@ -12,10 +13,11 @@ void savePPM(const std::string& filename, float* image, int width, int height) {
         f << (int)(std::min(1.0f, image[i]) * 255) << " ";
 }
 
-int main()
+static void mainBench(benchmark::State& state)
 {
-    std::cout << "Loading PLY file" << std::endl;
+    std::cout << "Loading PLY file..." << std::endl;
     std::vector<Gaussian> gaussians = loadPLY("/home/h/CLionProjects/RT-Core-Gaussian-Splatting/point_cloud.ply");
+    std::cout << "Loaded" << std::endl;
     int width, height;
     width = 1959;
     height = 1090;
@@ -27,8 +29,12 @@ int main()
     };
     Camera cam(pos, R, width, height, 1159.5880733038064f, 1164.6601287484507f, 979.5f, 545.0f);
     float *image = new float[width * height * 3]();
-    rasterize(gaussians, cam, image);
+    for (auto _ : state) {
+        rasterize(gaussians, cam, image);
+    }
     savePPM("/home/h/Downloads/cuSplat/out/output.ppm", image, width, height);
     delete[] image;
-    return 0;
 }
+BENCHMARK(mainBench)->Unit(benchmark::kSecond);
+
+BENCHMARK_MAIN();
