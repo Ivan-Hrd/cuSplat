@@ -1,9 +1,10 @@
 #pragma once
 #include <cstdint>
-#include <vector>
+#include <memory>
 
 #include "camera.hpp"
 #include "gaussian.hpp"
+#include "raft/core/device_span.hpp"
 
 #define TILE_SIZE 16
 
@@ -17,6 +18,7 @@ struct TileRange {
     int end;
 };
 
-std::vector<TileRange> IdentifyTileRanges(const std::vector<GaussianKey>& gaussianKeys, Camera& camera);
-
-std::vector<GaussianKey> CreateTiles(std::vector<GaussianSplated>& gaussian_splateds, Camera& camera);
+__global__ void IdentifyTileRanges(const raft::device_span<uint64_t> gaussianKeys, const raft::device_span<TileRange> tileRanges);
+__global__ void FillKeys(const raft::device_span<GaussianSplated> gaussian_splateds, int nTilesX, int nTilesY,
+                         const raft::device_span<uint64_t> gaussianKeys, const raft::device_span<uint32_t> gaussianKeysIdx, int* count);
+__global__ void GetSize(const raft::device_span<GaussianSplated> gaussian_splateds, int nTilesX, int nTilesY, int* counter);

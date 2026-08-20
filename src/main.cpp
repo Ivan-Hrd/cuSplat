@@ -28,7 +28,7 @@ int main()
     Camera cam(pos, R, width, height, 1159.5880733038064f, 1164.6601287484507f, 979.5f, 545.0f);
     float *image = new float[width * height * 3]();
     rasterize(gaussians, cam, image);
-    savePPM("/home/h/CLionProjects/RT-Core-Gaussian-Splatting/output.ppm", image, width, height);
+    savePPM("/home/h/Downloads/cuSplat/out/output.ppm", image, width, height);
     delete[] image;
     return 0;
 }
