@@ -1,4 +1,4 @@
-# RT-Core-Gaussian-Splatting
+# cuSplat
 
 Hardware-accelerated 3D Gaussian Splatting pipeline using CUDA.
 Optimized on a 3050Ti laptop.
