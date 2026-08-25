@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <memory>
+#include <span>
 
 #include "camera.hpp"
 #include "gaussian.hpp"
@@ -31,4 +32,4 @@ __device__ inline bool isVisible(Gaussian g, const Camera& cam, float radius) {
            v+radius > 0 && v-radius < cam.height;
 }
 __global__ void screenspaceGaussians(const raft::device_span<Gaussian> gaussians, const Camera camera, const raft::device_span<GaussianSplated> res);
-void rasterize(const std::vector<Gaussian>& gaussians, Camera &camera, float *image);
+void rasterize(std::span<Gaussian> gaussians, Camera &camera, float *image);

@@ -1,10 +1,11 @@
-#include <benchmark/benchmark.h>
 #include <fstream>
 #include <iostream>
+#include <span>
 
 #include "camera.hpp"
 #include "gaussian.hpp"
 #include "utils.hpp"
+
 
 void savePPM(const std::string& filename, float* image, int width, int height) {
     std::ofstream f(filename);
@@ -13,10 +14,18 @@ void savePPM(const std::string& filename, float* image, int width, int height) {
         f << (int)(std::min(1.0f, image[i]) * 255) << " ";
 }
 
-static void mainBench(benchmark::State& state)
+int main()
 {
     std::cout << "Loading PLY file..." << std::endl;
-    std::vector<Gaussian> gaussians = loadPLY("/home/h/CLionProjects/RT-Core-Gaussian-Splatting/point_cloud.ply");
+    std::string path = "/home/h/Downloads/cuSplat/point_cloud.ply";
+    size_t length = getSize(path);
+    Gaussian* gaussians = nullptr;
+    cudaError_t err = cudaHostAlloc((void**)&gaussians, length * sizeof(Gaussian), 0);
+    if (err != cudaSuccess) {
+        std::cerr << "cudaHostAlloc failed: " << cudaGetErrorString(err) << "\n";
+        return 1;
+    }
+    loadPLY(path, gaussians);
     std::cout << "Loaded" << std::endl;
     int width, height;
     width = 1959;
@@ -29,12 +38,8 @@ static void mainBench(benchmark::State& state)
     };
     Camera cam(pos, R, width, height, 1159.5880733038064f, 1164.6601287484507f, 979.5f, 545.0f);
     float *image = new float[width * height * 3]();
-    for (auto _ : state) {
-        rasterize(gaussians, cam, image);
-    }
+    rasterize(std::span<Gaussian>(gaussians, length), cam, image);
     savePPM("/home/h/Downloads/cuSplat/out/output.ppm", image, width, height);
     delete[] image;
+    return 0;
 }
-BENCHMARK(mainBench)->Unit(benchmark::kSecond);
-
-BENCHMARK_MAIN();

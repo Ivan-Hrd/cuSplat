@@ -21,4 +21,5 @@ struct GaussianSplated { // 2D
     float radius;
 };
 
-std::vector<Gaussian> loadPLY(const std::string& filename);
+void loadPLY(const std::string& filename, Gaussian* gaussians);
+size_t getSize(const std::string& filename);

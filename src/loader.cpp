@@ -9,13 +9,26 @@
 
 #define NB_ATTRIBUTES 62
 
-std::vector<Gaussian> loadPLY(const std::string& filename) {
+size_t getSize(const std::string& filename) {
+    std::ifstream file(filename, std::ios::binary);
+    if (!file) throw std::runtime_error("Cannot open: " + filename);
+
+    size_t nbGauss = 0;
+    std::string line;
+    while (std::getline(file, line)) {
+        if (line.find("element vertex") != std::string::npos)
+            nbGauss = std::stoi(line.substr(15));
+        if (line == "end_header") break;
+    }
+    return nbGauss;
+}
+
+void loadPLY(const std::string& filename, Gaussian* gaussians) {
     /*
      *  Read from a PLY file that must follow : format binary_little_endian 1.0,
      *  62 floats for each gaussian : 3 coordinates + 3 normals + 3 f_dc + 45 SH + 1 opacity + 3 scale + 4 rotation (quaternions)
      *  Returns: A vector of gaussian struct contained in the file
      */
-    std::vector<Gaussian> result;
     std::ifstream file(filename, std::ios::binary);
     if (!file) throw std::runtime_error("Cannot open: " + filename);
 
@@ -92,9 +105,6 @@ std::vector<Gaussian> loadPLY(const std::string& filename) {
         gaussian.rz /= norm;
         gaussian.rw /= norm;
 
-        result.push_back(gaussian);
+        gaussians[i] = gaussian;
     }
-
-    assert(result.size() == nbGauss);
-    return result;
 }
