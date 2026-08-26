@@ -15,9 +15,7 @@ void savePPM(const std::string& filename, float* image, int width, int height) {
 
 static void rasterization_bench(benchmark::State& state)
 {
-    std::cout << "Loading PLY file..." << std::endl;
     std::vector<Gaussian> gaussians = loadPLY("/home/h/CLionProjects/RT-Core-Gaussian-Splatting/point_cloud.ply");
-    std::cout << "Loaded" << std::endl;
     int width, height;
     width = 1959;
     height = 1090;
@@ -29,12 +27,25 @@ static void rasterization_bench(benchmark::State& state)
     };
     Camera cam(pos, R, width, height, 1159.5880733038064f, 1164.6601287484507f, 979.5f, 545.0f);
     float *image = new float[width * height * 3]();
+    cudaEvent_t start, stop;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
     for (auto _ : state) {
+        cudaEventRecord(start, 0);
         rasterize(gaussians, cam, image);
+        cudaEventRecord(stop, 0);
+        cudaEventSynchronize(stop);
+
+        float milliseconds = 0.0f;
+        cudaEventElapsedTime(&milliseconds, start, stop);
+        state.SetIterationTime(milliseconds / 1000.0f);
     }
+    cudaEventDestroy(start);
+    cudaEventDestroy(stop);
     savePPM("/home/h/Downloads/cuSplat/out/output.ppm", image, width, height);
     delete[] image;
 }
-BENCHMARK(rasterization_bench)->Unit(benchmark::kSecond);
+BENCHMARK(rasterization_bench)->Unit(benchmark::kSecond)->UseManualTime()->Iterations(1);
+BENCHMARK(rasterization_bench)->Unit(benchmark::kSecond)->UseManualTime()->Iterations(200);
 
 BENCHMARK_MAIN();
