@@ -38,7 +38,7 @@ add_library(cusplat_core OBJECT
 target_include_directories(cusplat_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(cusplat_core PUBLIC rmm::rmm raft::raft)
 
-foreach(_target snapshot bench multiFrame)
+foreach(_target snapshot bench)
     add_executable(${_target})
     target_link_libraries(${_target} PRIVATE cusplat_core benchmark::benchmark)
 endforeach()
