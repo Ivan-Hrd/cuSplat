@@ -14,7 +14,7 @@ void savePPM(const std::string& filename, float* image, int width, int height) {
         f << (int)(std::min(1.0f, image[i]) * 255) << " ";
 }
 
-static void mainBench(benchmark::State& state)
+static void rasterization_bench(benchmark::State& state)
 {
     std::cout << "Loading PLY file..." << std::endl;
     std::string path = "/home/h/Downloads/cuSplat/point_cloud.ply";
@@ -50,6 +50,6 @@ static void mainBench(benchmark::State& state)
     cudaFreeHost(gaussians);
 
 }
-BENCHMARK(mainBench)->Unit(benchmark::kSecond);
+BENCHMARK(rasterization_bench)->Unit(benchmark::kSecond);
 
 BENCHMARK_MAIN();
