@@ -18,14 +18,12 @@ static void rasterization_bench(benchmark::State& state)
 {
     std::string path = "/home/h/Downloads/cuSplat/point_cloud.ply";
     size_t length = getSize(path);
-    Gaussian* gaussians = new Gaussian[length]();//nullptr;
-    /*
+    Gaussian* gaussians = nullptr;
     cudaError_t err = cudaHostAlloc((void**)&gaussians, length * sizeof(Gaussian), 0);
     if (err != cudaSuccess) {
         std::cerr << "cudaHostAlloc failed: " << cudaGetErrorString(err) << "\n";
         return;
     }
-    */
     loadPLY(path, gaussians);
     int width, height;
     width = 1959;
@@ -37,8 +35,12 @@ static void rasterization_bench(benchmark::State& state)
         { 0.0583817692581828f,   0.09301955098900708f,   0.9939511719154457f }
     };
     Camera cam(pos, R, width, height, 1159.5880733038064f, 1164.6601287484507f, 979.5f, 545.0f);
-    float *image = new float[width * height * 3]();
-    //cudaHostAlloc((void**)&image, width * height * 3 * sizeof(float), 0);
+    float *image = nullptr;
+    err = cudaHostAlloc((void**)&image, width * height * 3 * sizeof(float), 0);
+    if (err != cudaSuccess) {
+        std::cerr << "cudaHostAlloc failed: " << cudaGetErrorString(err) << "\n";
+        return;
+    }
     auto gaussiansMemory = rmm::device_uvector<Gaussian>(length, rmm::cuda_stream_default);
     Gaussian* d_raw = gaussiansMemory.data();
     cudaMemcpy(d_raw, gaussians, length*sizeof(Gaussian), cudaMemcpyHostToDevice);
@@ -60,10 +62,8 @@ static void rasterization_bench(benchmark::State& state)
     cudaEventDestroy(stop);
 
     savePPM("/home/h/Downloads/cuSplat/out/output.ppm", image, width, height);
-    delete[] image;
-    delete[] gaussians;
-    //cudaFreeHost(image);
-    //cudaFreeHost(gaussians);
+    cudaFreeHost(image);
+    cudaFreeHost(gaussians);
 
 }
 BENCHMARK(rasterization_bench)->Unit(benchmark::kSecond)->UseManualTime()->Iterations(1);

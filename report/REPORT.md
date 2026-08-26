@@ -8,6 +8,9 @@ At first glance, there are two main concerning parts. First the memory transfert
 from `thrust::copy` so it relate to the first transfert of every gaussian to the GPU. The second part, and the one taking
 most the time, is the alpha blending kernel.
 
+`1 Frame : 0.137 second` \
+`200 Frames : 0.135 second`
+
 ## Memory transfer
 
 ### Reducing memory transfer
@@ -27,16 +30,9 @@ That's why, relocating gaussians to the device once and for all before any raste
 
 It can now be clearly seen that, with a big enough number of frame, most of the remaining optimization is at kernel level with more than 85% of the workload being at kernel execution time.
 
+`1 Frame : 0.0923 second` x1.48 SpeedUp \
+`200 Frames : 0.086 second` x1.57 SpeedUp
 
-### Pinned Memory
-One thing we can note from this HtoD transfert, is that source memory kind is said to be `pageable`. However paged memory
-needs to first be copied by the driver to pinned memory which hurt performance. Allocating gaussians host's variable (holding every gaussians of the scene) with `cudaHostAlloc`
-allows us to fill its content directly in pinned memory and make the HtoD transfert faster.
-
-![img_1.png](img_1.png)
-*NSight System screenshot for GPU baseline using pinned memory - 1 frame (`nsys_report_pinned.nsys-rep`)*
-
-
-However, there's no significant speedup for the transfer itself, going from `45.964 ms` using pageable memory against `35.361 ms` with pinned memory.
-Even though we avoid a potential copy by the driver, most of the work (i.e. Host to Device transfer) still need to be done.
+> Note : Host memory allocation for `gaussians` and `image` has also changed to `cudaHostAlloc()` to use pinned memory,
+> it increased memory throughput (from 4.9GiB/s to 6.3GiB/s) but no significant overall speedup was made (as `gaussians` loading is done once for every frame) so no section has been written about it
 

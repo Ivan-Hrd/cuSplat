@@ -37,8 +37,12 @@ int main()
         { 0.0065061360949636f,   0.9955928229282383f,   -0.09355533724430458f},
         { 0.0583817692581828f,   0.09301955098900708f,   0.9939511719154457f }
     };
-
-    float *image = new float[width * height * 3]();
+    float *image = nullptr;
+    err = cudaHostAlloc((void**)&image, width * height * 3 * sizeof(float), 0);
+    if (err != cudaSuccess) {
+        std::cerr << "cudaHostAlloc failed: " << cudaGetErrorString(err) << "\n";
+        return 1;
+    }
     Camera cam(pos, R, width, height, 1159.5880733038064f, 1164.6601287484507f, 979.5f, 545.0f);
     auto gaussiansMemory = rmm::device_uvector<Gaussian>(length, rmm::cuda_stream_default);
     Gaussian* d_raw = gaussiansMemory.data();
@@ -47,7 +51,7 @@ int main()
     rasterize(std::span<Gaussian>(d_raw, length), cam, image);
     savePPM("/home/h/Downloads/cuSplat/out/output.ppm", image, width, height);
 
-    delete[] image;
+    cudaFreeHost(image);
     cudaFreeHost(gaussians);
     return 0;
 }
