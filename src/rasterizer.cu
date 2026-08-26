@@ -61,10 +61,7 @@ __global__ void AlphaBlend(const raft::device_span<TileRange> tileRanges, const 
 void rasterize(std::span<Gaussian> gaussians, Camera &camera, float *image) {
     // CULLING
     auto cullGaussiansMemory = rmm::device_uvector<Gaussian>(gaussians.size(), rmm::cuda_stream_default);
-    auto gaussiansMemory = rmm::device_uvector<Gaussian>(gaussians.size(), rmm::cuda_stream_default);
-    Gaussian* d_raw = gaussiansMemory.data();
-    cudaMemcpy(d_raw, gaussians.data(), gaussians.size()*sizeof(Gaussian), cudaMemcpyHostToDevice);
-    thrust::device_ptr<Gaussian> d_begin(d_raw);
+    thrust::device_ptr<Gaussian> d_begin(gaussians.data());
     thrust::device_ptr<Gaussian> d_end = d_begin + gaussians.size();
     auto end = thrust::copy_if(d_begin, d_end,
                                     cullGaussiansMemory.begin(), [camera] __device__(Gaussian gaussian) {

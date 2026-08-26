@@ -5,6 +5,7 @@
 #include "camera.hpp"
 #include "gaussian.hpp"
 #include "utils.hpp"
+#include "rmm/device_uvector.hpp"
 
 void savePPM(const std::string& filename, float* image, int width, int height) {
     std::ofstream f(filename);
@@ -37,11 +38,17 @@ static void mainBench(benchmark::State& state)
     };
     Camera cam(pos, R, width, height, 1159.5880733038064f, 1164.6601287484507f, 979.5f, 545.0f);
     float *image = new float[width * height * 3]();
+    auto gaussiansMemory = rmm::device_uvector<Gaussian>(length, rmm::cuda_stream_default);
+    Gaussian* d_raw = gaussiansMemory.data();
+    cudaMemcpy(d_raw, gaussians, length*sizeof(Gaussian), cudaMemcpyHostToDevice);
+
     for (auto _ : state) {
-        rasterize(std::span<Gaussian>(gaussians, length), cam, image);
+        rasterize(std::span<Gaussian>(d_raw, length), cam, image);
     }
     savePPM("/home/h/Downloads/cuSplat/out/output.ppm", image, width, height);
     delete[] image;
+    cudaFreeHost(gaussians);
+
 }
 BENCHMARK(mainBench)->Unit(benchmark::kSecond);
 
