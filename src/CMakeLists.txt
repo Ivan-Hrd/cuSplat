@@ -1,1 +1,2 @@
-target_sources(main PRIVATE main.cpp loader.cpp)
+target_sources(snapshot PRIVATE snapshot.cu loader.cpp)
+target_sources(bench PRIVATE bench.cu loader.cpp)
