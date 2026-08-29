@@ -6,7 +6,9 @@
 
 #include "camera.hpp"
 #include "gaussian.hpp"
+#include "tiling.hpp"
 #include "raft/core/device_span.hpp"
+#include "rmm/device_uvector.hpp"
 
 __device__ inline Gaussian worldToCamera(Gaussian g, const Camera& cam) {
     Gaussian cameraGaussian = g;
@@ -32,4 +34,5 @@ __device__ inline bool isVisible(Gaussian g, const Camera& cam, float radius) {
            v+radius > 0 && v-radius < cam.height;
 }
 __global__ void screenspaceGaussians(const raft::device_span<Gaussian> gaussians, const Camera camera, const raft::device_span<GaussianSplated> res);
-void rasterize(std::span<Gaussian> gaussians, Camera &camera, float *image);
+
+

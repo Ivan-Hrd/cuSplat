@@ -12,6 +12,7 @@
 #include "camera.hpp"
 #include "utils.hpp"
 #include "gaussian.hpp"
+#include "raster.hpp"
 #include "tiling.hpp"
 
 
@@ -58,16 +59,17 @@ __global__ void AlphaBlend(const raft::device_span<TileRange> tileRanges, const 
     }
 }
 
-void rasterize(std::span<Gaussian> gaussians, Camera &camera, float *image) {
+void Raster::rasterize(float *image) {
     // CULLING
     auto cullGaussiansMemory = rmm::device_uvector<Gaussian>(gaussians.size(), rmm::cuda_stream_default);
     thrust::device_ptr<Gaussian> d_begin(gaussians.data());
     thrust::device_ptr<Gaussian> d_end = d_begin + gaussians.size();
+    auto camera_capture = this->camera;
     auto end = thrust::copy_if(d_begin, d_end,
-                                    cullGaussiansMemory.begin(), [camera] __device__(Gaussian gaussian) {
-        gaussian = worldToCamera(gaussian, camera);
-        float radius = camera.fx * max(max(gaussian.sx, gaussian.sy),gaussian.sz) / gaussian.z;
-        return isVisible(gaussian, camera, radius);
+                                    cullGaussiansMemory.begin(), [camera_capture] __device__(Gaussian gaussian) {
+        gaussian = worldToCamera(gaussian, camera_capture);
+        float radius = camera_capture.fx * max(max(gaussian.sx, gaussian.sy),gaussian.sz) / gaussian.z;
+        return isVisible(gaussian, camera_capture, radius);
     });
     cullGaussiansMemory.resize(end-cullGaussiansMemory.begin(), rmm::cuda_stream_default);
     // --
@@ -83,8 +85,6 @@ void rasterize(std::span<Gaussian> gaussians, Camera &camera, float *image) {
 
     // FILL & SORT GAUSSIANS KEYS
     // FILL
-    int nTilesX = (camera.width+TILE_SIZE-1) / TILE_SIZE;
-    int nTilesY = (camera.height+TILE_SIZE-1) / TILE_SIZE;
     auto countMemory = rmm::device_scalar<int>(0, rmm::cuda_stream_default);
     GetSize<<<GS, BS>>>(gaussiansSplateds, nTilesX, nTilesY, countMemory.data());
     int nbKeys = countMemory.value(countMemory.stream());
@@ -107,18 +107,15 @@ void rasterize(std::span<Gaussian> gaussians, Camera &camera, float *image) {
     // --
 
     // GET TILES RANGES AMONG GAUSSIANS
-    auto tileRangesMemory = rmm::device_uvector<TileRange>(nTilesX*nTilesY, rmm::cuda_stream_default);
-    auto tileRanges = raft::device_span<TileRange>(tileRangesMemory.data(), nTilesX*nTilesY);
     thrust::fill(thrust::cuda::par.on(rmm::cuda_stream_default),
-                tileRangesMemory.begin(),
-                tileRangesMemory.end(),
+                tileRanges.begin(),
+                tileRanges.end(),
                 TileRange{-1, -1});
     GS = (gaussianKeys.size() + BS - 1) / BS;
     IdentifyTileRanges<<<GS,BS>>>(gaussianKeys, tileRanges);
     // --
 
     // BLEND
-    auto d_image = rmm::device_uvector<float>(camera.width*camera.height*3, rmm::cuda_stream_default);
     thrust::fill(thrust::cuda::par.on(rmm::cuda_stream_default.value()),
              d_image.begin(),
              d_image.end(),
