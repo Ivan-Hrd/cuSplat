@@ -61,6 +61,7 @@ To reduce the number of barriers (`__syncthreads()`) in the for loop, a **double
 such that each time we need to load new gaussians, we load it in the "oldest" buffer we used. This way, one thread don't 
 overwrite value on the shared array that still could be used by another thread still processing its data in previous 
 for loop iteration (each thread having its own pace until the one `__syncthreads()`).
+However, this double buffering technique comes with a significant memory drawback as it doubles the required shared memory footprint.
 
 `1 Frame : 0.078 second` x1.18 SpeedUp \
 `200 Frames : 0.072 second (avg)` x1.19 SpeedUp
@@ -78,4 +79,3 @@ with start and offset being the same for each thread, tid values are linear (thr
 On the other hand, the 12 loading call for the gaussian load (lines 45-56), have 87.46% of global excessive access.
 The reason why this happens, is because even though `gaussianKeysIdx` access is coalesced, it return index that could be anywhere in the gaussian array, thus one thread can hit a very different
 part of the `gaussSplateds` list, loading useless bytes surrounding the one needed value, which other threads do not necessarily need.
-
