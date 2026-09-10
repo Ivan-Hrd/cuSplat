@@ -4,6 +4,7 @@
 
 #include "camera.hpp"
 #include "gaussian.hpp"
+#include "raster.hpp"
 #include "utils.hpp"
 #include "rmm/device_uvector.hpp"
 
@@ -43,14 +44,15 @@ static void rasterization_bench(benchmark::State& state)
     }
     auto gaussiansMemory = rmm::device_uvector<Gaussian>(length, rmm::cuda_stream_default);
     Gaussian* d_raw = gaussiansMemory.data();
-    cudaMemcpy(d_raw, gaussians, length*sizeof(Gaussian), cudaMemcpyHostToDevice);
+    cudaMemcpyAsync(d_raw, gaussians, length*sizeof(Gaussian), cudaMemcpyHostToDevice, rmm::cuda_stream_default);
+    Raster rast = Raster(raft::device_span<Gaussian>(d_raw, length), cam);
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
     for (auto _ : state) {
-        cudaEventRecord(start, 0);
-        rasterize(std::span<Gaussian>(d_raw, length), cam, image);
-        cudaEventRecord(stop, 0);
+        cudaEventRecord(start, rmm::cuda_stream_default);
+        rast.rasterize(image);
+        cudaEventRecord(stop, rmm::cuda_stream_default);
         cudaEventSynchronize(stop);
 
         float milliseconds = 0.0f;

@@ -4,9 +4,9 @@
 
 #include "camera.hpp"
 #include "gaussian.hpp"
+#include "raster.hpp"
 #include "utils.hpp"
 #include "rmm/device_uvector.hpp"
-
 
 void savePPM(const std::string& filename, float* image, int width, int height) {
     std::ofstream f(filename);
@@ -48,10 +48,12 @@ int main()
     Gaussian* d_raw = gaussiansMemory.data();
     cudaMemcpy(d_raw, gaussians, length*sizeof(Gaussian), cudaMemcpyHostToDevice);
 
-    rasterize(std::span<Gaussian>(d_raw, length), cam, image);
+    Raster rast = Raster(raft::device_span<Gaussian>(d_raw, length), cam);
+    rast.rasterize(image);
     savePPM("/home/h/Downloads/cuSplat/out/output.ppm", image, width, height);
 
     cudaFreeHost(image);
     cudaFreeHost(gaussians);
     return 0;
 }
+
