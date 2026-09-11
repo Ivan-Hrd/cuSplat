@@ -47,7 +47,7 @@ previous branches plus new optimizations detailed in that branch's report (e.g.,
 
 ## Usage
 
-To compile the project you should at least have installed cmake and nvidia developper toolkit.
+To compile the project you should at least have installed cmake and nvidia developer toolkit.
 
 You should compile at the root of the repo : \
 Build the project \
